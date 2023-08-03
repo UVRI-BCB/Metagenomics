@@ -74,7 +74,7 @@ trim_galore -q 30 --dont_gzip --paired data/sample1_R1.fq data/sample1_R2.fq -o 
 
 ## **Taxonomic classification of short reads**
 
-```{r, eval=FALSE, echo=TRUE}
+```
 #!/bin/bash
 #SBATCH --partition=all_2
 #SBATCH --nodes=4
@@ -87,8 +87,11 @@ trim_galore -q 30 --dont_gzip --paired data/sample1_R1.fq data/sample1_R2.fq -o 
 echo "SLURM_JOBID="$SLURM_JOBID
 echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
+```
 
 ##  Run kraken2 on just the viral DB
+
+```
 for f in $(ls /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/Fastq/*R1*.fastq); do echo $f;    
             sample=$(basename $f '_L001_R1_001.fastq'); echo $sample; \
             kraken2 --paired --report ${sample}.report \
@@ -102,7 +105,7 @@ done
 
 At this point, we have clean reads and we are ready to map the reads onto reference genomes of interest using `bowtie2`.
 
-```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
+```
 #!/bin/bash
 #SBATCH --partition=all_2
 #SBATCH --nodes=4
@@ -143,7 +146,7 @@ merging contigs constructed by two assemblers and lastly blasting the merged con
 Prior to performing de novo assembly, we remove the host reads from the 
 data. Here we use `bowtie2` to map reads to the human genome and retain  the reads that do not map to the human genome for de novo assembly.
 
-```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
+```
 #!/bin/bash
 #SBATCH --partition=all_2
 #SBATCH --nodes=4
@@ -175,8 +178,10 @@ done
 ```
 
 ### **De novo assembly using spades**
+
 Assemble the short reads into longer contigs using `spades`.
-```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
+
+```
 #!/bin/bash
 #SBATCH --partition=all_2
 #SBATCH --nodes=4
@@ -203,7 +208,7 @@ done
 
 ### **Blast de-novo constructed contigs using diamond**
 
-```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE, tidy=FALSE}
+```
 mkdir diamond_out
 #!/bin/bash
 #SBATCH --partition=all_2
@@ -229,7 +234,7 @@ done
 
 ### **Classify assembled contigs using Kraken2**
 
-```{r, eval=FALSE, echo=TRUE}
+```
 #!/bin/bash
 #SBATCH --partition=all_2
 #SBATCH --nodes=4
@@ -244,6 +249,7 @@ echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
 
 ##  Run kraken2 on just the viral DB
+
 for f in $(ls /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/assembly/*.fasta); do echo $f;    
             sample=$(basename $f '.fasta'; echo $sample; \
             kraken2 --report ${sample}.report \
@@ -256,12 +262,12 @@ done
 ## **Phylogenetic analyses**
 
 Multiple sequence alignment using `mafft`.
-```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
+```
 mafft all_contigs.fa > all_contigs_aln.fa
 ```
 
 Phylogenetic tree construction using `iqtree`
-```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
+```
 iqtree -s all_contigs_aln.fa -m MF
 ```
 
