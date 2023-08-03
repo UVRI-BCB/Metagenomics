@@ -101,6 +101,22 @@ for f in $(ls /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenom
 done
 ```
 
+Process Kraken output using [KrakenTools](https://github.com/jenniferlu717/KrakenTools) and visualise results using KronaTools.
+
+```
+# convert to mpa format
+for f in `ls *.report`; do b=$(basename $f '.report'); echo $b;
+python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/kreport2mpa.py -r $f -o ${b}.report.mpa  --display-header;
+done
+python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/combine_mpa.py -i *.mpa -o kraken-combined.txt
+
+# generate krona plots
+for f in `ls *.report`; do b=$(basename $f '.report'); echo $b;
+python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/kreport2krona.py -r $f -o ${b}.krona ;
+done
+for f in `ls *.krona`; do b=$(basename $f '.krona'); echo $b; ktImportText $f -o ${b}.krona.html ; done
+```
+
 ## **Reference based mapping**
 
 At this point, we have clean reads and we are ready to map the reads onto reference genomes of interest using `bowtie2`.
