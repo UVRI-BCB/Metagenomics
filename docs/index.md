@@ -53,7 +53,6 @@ fastqc /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/Fas
 After inspecting the quality of the reads, we use `trim_galore` to trim reads by length and quality. Note that our input is the fastq reads as specified earlier.
 
 ```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
-mkdir trimmed
 #!/bin/bash
 #SBATCH --partition=all_2
 #SBATCH --nodes=1
@@ -68,6 +67,7 @@ echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
 echo "SLURMTMPDIR="$SLURMTMPDIR
 
+mkdir trimmed
 trim_galore -q 30 --dont_gzip --paired data/sample1_R1.fq data/sample1_R2.fq -o trimmed
 ```
 
