@@ -19,8 +19,13 @@ For this analysis, we use the following tools. Most of the tools can be installe
 
 ## **Required Databases**
 
-* Viruses database: https://ftp.ncbi.nlm.nih.gov/refseq/release/viral/
-* Human genome and other databases: https://benlangmead.github.io/aws-indexes/bowtie
+Pre-built databases: [https://benlangmead.github.io/aws-indexes/bowtie](https://benlangmead.github.io/aws-indexes/)
+* Bowtie2 index of the Human genome: [https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip)
+* Kraken2 viral DB: [https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20230605.tar.gz](https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20230605.tar.gz)
+
+For `DIAMOND` and `BLASTn`, we build on-prem databases using the RVDB database [https://rvdb.dbi.udel.edu/](https://rvdb.dbi.udel.edu/).
+* Unclustered nucleotide sequences: [https://rvdb.dbi.udel.edu/download/U-RVDBv26.0.fasta.gz](https://rvdb.dbi.udel.edu/download/U-RVDBv26.0.fasta.gz)
+* Proteic version of RVDB: [https://rvdb-prot.pasteur.fr/files/U-RVDBv26.0-prot.fasta.xz](https://rvdb-prot.pasteur.fr/files/U-RVDBv26.0-prot.fasta.xz)
 
 ## **Configuration**
 
