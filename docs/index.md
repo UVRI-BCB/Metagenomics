@@ -253,23 +253,9 @@ done
 for f in $(ls *_dmnd.tsv); do bn=$(basename $f '_scaffolds.fasta_dmnd.tsv'); sed "s/$/\t$bn/g" $f > ${bn}_blast.tsv; done
 ```
 
-Process Kraken output using [KrakenTools](https://github.com/jenniferlu717/KrakenTools) and visualise results using KronaTools.
-
-```
-# convert to mpa format
-for f in `ls *.report`; do b=$(basename $f '.report'); echo $b;
-python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/kreport2mpa.py -r $f -o ${b}.report.mpa  --display-header;
-done
-python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/combine_mpa.py -i *.mpa -o kraken-combined.txt
-
-# generate krona plots
-for f in `ls *.report`; do b=$(basename $f '.report'); echo $b;
-python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/kreport2krona.py -r $f -o ${b}.krona ;
-done
-for f in `ls *.krona`; do b=$(basename $f '.krona'); echo $b; ktImportText $f -o ${b}.krona.html ; done
-```
-
 ## **Phylogenetic analyses**
+
+After analysing the Blastn and Blastx results, identify representative reference genomes from the Family/Genus of the virus of interest - refer to NCBI RefSeq and/or [ICTV](https://ictv.global/). Construct a base multiple sequence alignment for that particular family/genus. Add sequences (contigs) and construct a phylogeny using IQtree/RAxML.
 
 Multiple sequence alignment using `mafft`.
 ```
