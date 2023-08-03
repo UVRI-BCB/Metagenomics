@@ -1,7 +1,5 @@
 ## Metagenomics analysis procedure for APDC project
 
-### Required tools
-
 ## **Required tools**
 
 For this analysis, we use the following tools. Most of the tools can be installed from `conda` via `bioconda` channel. As such, we recommend creating a `conda` environment, installing all the tools in that particular environment and adding the environment `bin` to the system `PATH`. Below is a list of bioinformatics tools required for this analysis.
@@ -234,31 +232,25 @@ for f in $(ls $data_path/*.fasta); \
 done
 ```
 
-### **Classify assembled contigs using Kraken2**
+```
+# Add sample names to dmnd output
+for f in $(ls *_dmnd.tsv); do bn=$(basename $f '_scaffolds.fasta_dmnd.tsv'); sed "s/$/\t$bn/g" $f > ${bn}_blast.tsv; done
+```
+
+Process Kraken output using [KrakenTools](https://github.com/jenniferlu717/KrakenTools) and visualise results using KronaTools.
 
 ```
-#!/bin/bash
-#SBATCH --partition=all_2
-#SBATCH --nodes=4
-#SBATCH --cpus-per-task=32
-#SBATCH --job-name=kraken2-viral
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=assekagiri@gmail.com
-#SBATCH --output=slurm_%j.out
-
-echo "SLURM_JOBID="$SLURM_JOBID
-echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
-echo "SLURM_NNODES"=$SLURM_NNODES
-
-##  Run kraken2 on just the viral DB
-
-for f in $(ls /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/assembly/*.fasta); do echo $f;    
-            sample=$(basename $f '.fasta'; echo $sample; \
-            kraken2 --report ${sample}.report \
-            --output ${sample}.txt  \
-            ${sample}.fasta \
-            --db /mnt/lustre01/projects/viral_discovery/users/alfred/databases/krakenDB; 
+# convert to mpa format
+for f in `ls *.report`; do b=$(basename $f '.report'); echo $b;
+python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/kreport2mpa.py -r $f -o ${b}.report.mpa  --display-header;
 done
+python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/combine_mpa.py -i *.mpa -o kraken-combined.txt
+
+# generate krona plots
+for f in `ls *.report`; do b=$(basename $f '.report'); echo $b;
+python /mnt/lustre01/projects/viral_discovery/users/alfred/analysis/scripts/KrakenTools/kreport2krona.py -r $f -o ${b}.krona ;
+done
+for f in `ls *.krona`; do b=$(basename $f '.krona'); echo $b; ktImportText $f -o ${b}.krona.html ; done
 ```
 
 ## **Phylogenetic analyses**
