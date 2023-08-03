@@ -1,6 +1,5 @@
 ## Metagenomics analysis procedure for APDC project
 
-
 ### Required tools
 
 ## **Required tools**
@@ -87,11 +86,8 @@ trim_galore -q 30 --dont_gzip --paired data/sample1_R1.fq data/sample1_R2.fq -o 
 echo "SLURM_JOBID="$SLURM_JOBID
 echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
-```
 
 ##  Run kraken2 on just the viral DB
-
-```
 for f in $(ls /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/Fastq/*R1*.fastq); do echo $f;    
             sample=$(basename $f '_L001_R1_001.fastq'); echo $sample; \
             kraken2 --paired --report ${sample}.report \
