@@ -32,7 +32,7 @@ The analysis procedure presented in this document assumes a computing infrastruc
 
 ## **Quality control and trimming**
 
-Here we assess the quality of the raw reads using `Fastqc` program. This gives the basic statistics for each of the forward and backward reads.
+Here we assess the quality of the raw reads using `Fastqc` and `MultiQC`. This gives the basic statistics for each of the forward and backward reads. 
 
 ```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
 #!/bin/bash
@@ -50,11 +50,14 @@ echo "SLURM_NNODES"=$SLURM_NNODES
 echo "SLURMTMPDIR="$SLURMTMPDIR
 
 ##  Run FastQC
+data_path='/mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics'
+
 mkdir fastqc_results
-fastqc /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/Fastq/*.fastq -o fastqc_results
+fastqc $data_path/Fastq/*.fastq -o fastqc_results
+multiqc fastqc_results/* -o fastqc_results 
 ```
 
-After inspecting the quality of the reads, we use `trim_galore` to trim reads by length and quality. Note that our input is the fastq reads as specified earlier.
+At this point, we use `scp` to download the MultiQC report and have a look at it, according to our assessement of the report, we can choose whether or not to do some adaptor/quality trimming. After inspecting the quality of the reads, we use `trim_galore` for adaptor and quality trimming. Choice of cut-offs on quality scores, length, e.t.c is guided by the assessment made on the QC plots generated above.
 
 ```{r,eval=FALSE,error=FALSE,warning=FALSE,message=FALSE,echo=TRUE}
 #!/bin/bash
@@ -71,11 +74,19 @@ echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
 echo "SLURMTMPDIR="$SLURMTMPDIR
 
+data_path="/mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics"
+phred_score=30
+
 mkdir trimmed
-trim_galore -q 30 --dont_gzip --paired data/sample1_R1.fq data/sample1_R2.fq -o trimmed
+for f in $(ls $data_path/Fastq/*R1*.fastq); do echo $f;
+sample=$(basename $f '_L001_R1_001.fastq'); echo $sample;  
+trim_galore -q $phred_score --dont_gzip --paired $data_path/${sample}_L001_R1_001.fastq $data_path/${sample}_L001_R2_001.fastq -o trimmed
+done
 ```
 
-## **Taxonomic classification of short reads**
+## **Read-based taxonomic identification using Kraken2**
+
+To get an idea of the pathogens pathogens that could be in this sample, we do screen the read data using kraken2. Basically, the taxonomic identification is done in comparison/reference to a kraken-compatible pre-built database. We use two databases, the standard one (for viral, bacterial and Human reads classification) and the viral database for only virus classification. Change the `db_path` in the script below to chose a desired database.
 
 ```
 #!/bin/bash
@@ -91,13 +102,17 @@ echo "SLURM_JOBID="$SLURM_JOBID
 echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
 
-##  Run kraken2 on just the viral DB
-for f in $(ls /mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics/Fastq/*R1*.fastq); do echo $f;    
+##  Run kraken2 on the standard Kraken2 DB
+data_path="/mnt/lustre01/projects/viral_discovery/users/alfred/data/Metagenomics"
+db_path="/mnt/lustre01/projects/viral_discovery/users/alfred/databases/krakenDB/standard"
+#db_path="/mnt/lustre01/projects/viral_discovery/users/alfred/databases/krakenDB/viral"
+
+for f in $(ls $data_path/Fastq/*R1*.fastq); do echo $f;    
             sample=$(basename $f '_L001_R1_001.fastq'); echo $sample; \
             kraken2 --paired --report ${sample}.report \
             --output ${sample}.txt ${sample}_L001_R1_001.fastq \
             ${sample}_L001_R2_001.fastq \
-            --db /mnt/lustre01/projects/viral_discovery/users/alfred/databases/krakenDB/standard; 
+            --db $db_path; 
 done
 ```
 
@@ -117,9 +132,11 @@ done
 for f in `ls *.krona`; do b=$(basename $f '.krona'); echo $b; ktImportText $f -o ${b}.krona.html ; done
 ```
 
-## **Reference based mapping**
+## **Mapping mNGS data onto reference genomes**
 
-At this point, we have clean reads and we are ready to map the reads onto reference genomes of interest using `bowtie2`.
+After inspecting the Kraken2 output, we hand pick taxa of interest e.g viruses, bacteria e.t.c. We then download corresponding reference genomes (we usually download reference sequences of the genus to which a particular pathogen of interest belongs). We use two tools for this purpose; `bowtie2` and `tanoti`. 
+
+#### Mapping mNGS data onto reference genomes using Bowtie2 
 
 ```
 #!/bin/bash
@@ -150,6 +167,26 @@ for f in $(ls $data_path/*_L001_R1_001.fastq); do
   samtools view -b ${fname}.sam > ${fname}.bam
   samtools sort ${fname}.bam > ${fname}_sorted.bam
   samtools index ${fname}_sorted.bam
+done
+```
+
+
+#### Mapping mNGS data onto reference genomes using Tanoti 
+
+Map the short reads onto the reference genome, obtain mapping statistics and generate consensus sequences from alignment maps
+
+```
+data_path="/mnt/lustre01/projects/viral_discovery/users/alfred/data/Fastq"
+ref_path="/mnt/lustre01/projects/viral_discovery/users/alfred/analysis/mapping/bowtie2-ref/refs"
+
+for f in $(ls $data_path/*_L001_R1_001.fastq); do
+            fname=$(basename $f "_L001_R1_001.fastq");
+            mkdir $fname;
+            tanoti -r $ref_path/ref.fasta -i $data_path/${fname}_L001_R1_001.fastq $data_path/${fname}_L001_R2_001.fastq -p 1;
+            mv FinalAssembly.sam $fname/ ;
+            SAM_STATS  $fname/FinalAssembly.sam
+            #generate consensus
+            SAM2CONSENSUS -i $fname/FinalAssembly.sam -o $fname/${fname}_consensus.fa
 done
 ```
 
