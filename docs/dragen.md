@@ -31,6 +31,12 @@ Authentificate on the command line
 bs auth
 ```
 
+If you configured it before, it may give you an error with already exists message
+
+```
+bs auth --force
+```
+
 `bs` will print a message like the one below on your terminal, simply follow the instruction in that message.
 
 ```
