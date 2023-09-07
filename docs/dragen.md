@@ -6,13 +6,13 @@ First, download the basescape binary into your home directory.
 wget "https://launch.basespace.illumina.com/CLI/latest/amd64-osx/bs" -O $HOME/bin/bs
 ```
 
-Make sure that the downloaded binary file is actually executable
+Make sure that the downloaded binary file is actually executable.
 
 ```
 chmod u+x $HOME/bin/bs
 ```
 
-Update basespace CLI HUB using Homebrew
+Update basespace CLI HUB using Homebrew.
 
 ```
 brew tap basespace/basespace && brew install bs-cli
@@ -40,7 +40,7 @@ Copy the link and paste it in the browser, you will need to login and accept the
 https://basespace.illumina.com/oauth/device?code=s6BKU
 ```
 
-After pasting the link in your browser, you will receive a message welcoming you to the basespace dashbord, something like **Welcome, YourFirstname YourLastName**
+After pasting the link in your browser, you will receive a message welcoming you to the basespace dashbord, something like **Welcome, YourFirstname YourLastName**.
 
 A quick note: Basespace tracks data by project and biossamples. As such, we need to specify them before we can go on to upload data. Now, let us move back to the terminal. Just a quick note
 create a bio sample and corresponding project where we shall store the data, in the command below; bio sample name is  `outbreak` and project name is `VHFnegative`.
