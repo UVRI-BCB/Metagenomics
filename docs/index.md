@@ -259,6 +259,37 @@ for f in $(ls $data_path/*1.fastq); \
 done
 ```
 
+### **Blast de-novo constructed contigs using BLASTn**
+
+We compare contigs to a database of reference nucleotide sequences from Refseq. This can be adjusted using the `db_path` variable in the script below. The reference sequences can be the entire NCBI `nt`, sequences of particular `genus` or `family` of viruses e.t.c, as long as it is in `.fasta` format.
+
+```
+mkdir diamond_out
+#!/bin/bash
+#SBATCH --partition=all_2
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=32
+#SBATCH --job-name=DIAMOND
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=assekagiri@gmail.com
+#SBATCH --output=slurm_%j.out
+
+echo "SLURM_JOBID="$SLURM_JOBID
+echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
+echo "SLURM_NNODES"=$SLURM_NNODES
+
+##  Run  DIAMOND blastx
+data_path="/mnt/lustre01/projects/viral_discovery/users/alfred/analysis/hostfree/scaffolds"
+db_path="/mnt/lustre01/projects/viral_discovery/users/alfred/databases/blastn/virus.fa"
+for f in $(ls $data_path/*.fasta); \
+ do echo $f; sample=$(basename $f 'scaffold.fasta'); echo $sample; \
+  blastn -query $f -subject $db_path -outfmt 6 > ${sample}_blastn.tsv
+done
+
+# Add sample names to blastn output
+for f in $(ls *_blastn.tsv); do bn=$(basename $f 'blastn.tsv'); sed "s/$/\t$bn/g" $f > ${bn}_blastn_labelled.tsv; done
+```
+
 ### **Blast de-novo constructed contigs using diamond**
 
 ```
@@ -281,13 +312,11 @@ data_path="/mnt/lustre01/projects/viral_discovery/users/alfred/analysis/hostfree
 db_path="/mnt/lustre01/projects/viral_discovery/users/alfred/databases/dmnd/viral"
 for f in $(ls $data_path/*.fasta); \
  do echo $f; sample=$(basename $f 'scaffold.fasta'); echo $sample; \
-  diamond blastx --db $db_path --query $f --out ${sample}_dmnd.tsv --outfmt 6 
+  diamond blastx --db $db_path --query $f --out ${sample}_dmnd.tsv --outfmt 6 > ${sample}_dmnd.tsv
 done
-```
 
-```
 # Add sample names to dmnd output
-for f in $(ls *_dmnd.tsv); do bn=$(basename $f '_scaffolds.fasta_dmnd.tsv'); sed "s/$/\t$bn/g" $f > ${bn}_blast.tsv; done
+for f in $(ls *_dmnd.tsv); do bn=$(basename $f '_scaffolds.fasta_dmnd.tsv'); sed "s/$/\t$bn/g" $f > ${bn}_blastx.tsv; done
 ```
 
 ## **Phylogenetic analyses**
