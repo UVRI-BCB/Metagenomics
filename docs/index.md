@@ -132,6 +132,22 @@ done
 for f in `ls *.krona`; do b=$(basename $f '.krona'); echo $b; ktImportText $f -o ${b}.krona.html ; done
 ```
 
+**Extracting reads classified as a certain taxon**
+
+- We need the taxon ID, in the example below we use taxon ID 1392.
+- The FASTQ files from whoch to extract classified reads
+- The `Kraken` TXT file   
+
+```
+data_path='path/to/FASTQ/files'
+kraken_res='path/to/Kraken/results'
+
+for f in `ls $kraken_res/*.txt`; do b=$(basename $f '.txt'); echo $b;
+python extract_kraken_reads.py -k ${kraken_res}/${b}.txt -1 ${data_path}/${b}_L001_R1_001.fastq -2 ${data_path}/${b}_L001_R2_001.fastq -t 1392 -o ${b}_1.fasta -o2 ${b}_2.fasta ;
+cat ${b}*.fasta > ${b}.fa
+done
+```
+
 ## **Mapping mNGS data onto reference genomes**
 
 After inspecting the Kraken2 output, we hand pick taxa of interest e.g viruses, bacteria e.t.c. We then download corresponding reference genomes (we usually download reference sequences of the genus to which a particular pathogen of interest belongs). We use two tools for this purpose; `bowtie2` and `tanoti`. 
